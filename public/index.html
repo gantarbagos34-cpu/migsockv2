@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="id" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>migsock TEAM</title>
+<link rel="stylesheet" href="/local-tailwind.css">
+<style id="save-set-target-layout-v1">
+  .kick-control-row{display:grid;grid-template-columns:minmax(92px,1.15fr) repeat(4,minmax(72px,1fr)) minmax(88px,1.15fr) 42px;gap:8px;align-items:end;margin-top:2px}
+  .kick-control-row>div:first-child{min-width:0}
+  .kick-control-row>label,.kick-control-row>.reset-timer-wrap{min-width:0}
+  .kick-control-row input,.kick-control-row select{height:40px!important;font-size:11px!important;min-width:0}.kick-control-row #burstSize{min-width:88px}
+  .kick-control-row .kick-action-box{display:flex;flex-direction:column;gap:5px}
+  .kick-control-row .kick-action-box #kickAllButton{height:40px!important}
+  .kick-control-row .kick-action-box #timerValue{height:22px!important;margin-top:0!important;font-size:9px!important}
+  .kick-control-row .reset-timer-wrap{display:flex;align-items:end;justify-content:center;min-width:42px}
+  .kick-control-row .reset-timer-wrap button{width:42px;height:40px}
+  .save-set-inline{margin-top:10px;padding-top:10px;border-top:1px solid rgba(51,65,85,.55);display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center}
+  .save-set-inline-title{display:flex;align-items:center;gap:7px;color:#eaf2ff;font-size:11px;font-weight:800;white-space:nowrap}
+  .save-set-inline-title .command-title-icon{width:30px;height:30px;border-radius:9px}
+  .save-set-inline-title svg{width:16px;height:16px}
+  .save-set-inline-row{grid-template-columns:minmax(0,1fr) 52px 52px!important;gap:7px!important}
+  .save-set-inline .command-icon-button{height:40px;width:52px;border-radius:11px}
+  @media(max-width:700px){
+    .kick-control-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+    .kick-control-row .kick-action-box{grid-column:span 1}
+    .kick-control-row .reset-timer-wrap{grid-column:span 1}
+    .kick-control-row #burstSize{min-width:0;font-size:10px!important}
+    .save-set-inline{grid-template-columns:1fr;gap:7px}
+  }
+  @media(max-width:380px){
+    .kick-control-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+    .kick-control-row .kick-action-box,.kick-control-row .reset-timer-wrap{grid-column:span 1}
+    .save-set-inline-row{grid-template-columns:minmax(0,1fr) 48px 48px!important}
+  }
+</style>
+<style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #07090e;
+    color: #f1f5f9;
+    -webkit-tap-highlight-color: transparent;
+  }
+  input, button {
+    outline: none;
+  }
+  input:focus, button:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+  }
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0b0f19;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+  }
+  /* Modern unified textbox system: white, compact, touch-friendly. */
+  input:not([type="file"]):not(.hidden),
+  textarea,
+  select {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+    caret-color: #2563eb;
+  }
+  input:not([type="file"]):not(.hidden)::placeholder,
+  textarea::placeholder {
+    color: #64748b !important;
+    opacity: 1;
+  }
+  input:not([type="file"]):not(.hidden):focus,
+  textarea:focus,
+  select:focus {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59,130,246,.16), 0 8px 24px rgba(15,23,42,.10) !important;
+  }
+  .modern-input {
+    height: 44px;
+    border-radius: 14px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: 0 4px 14px rgba(15,23,42,.08);
+    transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
+  }
+  .modern-input:focus { transform: translateY(-1px); }
+  .modern-input::placeholder { color: #64748b !important; }
+  /* Compact control sizing for mobile and desktop */
+  .compact-main {
+    height: 40px !important;
+    min-height: 40px !important;
+    font-size: 13px !important;
+    padding-left: 11px !important;
+    padding-right: 11px !important;
+    border-radius: 12px !important;
+  }
+  .compact-save {
+    height: 38px !important;
+    min-height: 38px !important;
+    font-size: 12px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    border-radius: 11px !important;
+  }
+  .compact-range {
+    width: 56px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 5px !important;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+  }
+  .compact-room {
+    width: min(100%, 230px) !important;
+    max-width: 230px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    font-size: 13px !important;
+    padding: 0 12px !important;
+    border-radius: 12px !important;
+  }
+  .troop-input {
+    height: 34px !important;
+    border-radius: 11px !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 2px 8px rgba(15,23,42,.07);
+  }
+  @media (max-width: 430px) {
+    .modern-input { height: 42px; border-radius: 13px !important; }
+    .troop-input { height: 31px !important; font-size: 9px !important; }
+  }
+
+<style>
+.kick-control-row{grid-template-columns:minmax(0,1fr) repeat(5,minmax(0,54px));column-gap:8px;row-gap:9px}
+.kick-control-row>label{min-width:0}
+.kick-control-row>label>span{display:block!important;min-height:24px;margin-bottom:5px!important;text-align:center!important;font-size:9px!important;line-height:1.15!important;font-weight:800!important;letter-spacing:.04em!important;color:#7f8ea8!important;white-space:normal}
+.kick-control-row #kickTimer,
+.kick-control-row #textdelay,
+.kick-control-row #delayBatch,
+.kick-control-row #textloop,
+.kick-control-row #burstSize{width:100%;height:42px!important;min-width:0;box-sizing:border-box;border-radius:12px!important;padding:0 5px!important;font-size:12px!important}
+.kick-control-row>.min-w-0:first-child{min-width:0}
+.kick-control-row>.min-w-0:first-child #kickAllButton{height:42px!important;border-radius:12px!important;font-size:11px!important;line-height:1.1}
+.kick-control-row>.min-w-0:first-child #timerValue{height:28px!important;margin-top:5px!important;border-radius:10px!important;font-size:10px!important}
+@media(max-width:430px){
+  .kick-control-row{grid-template-columns:minmax(0,1fr) repeat(5,minmax(0,1fr));column-gap:5px;row-gap:8px}
+  .kick-control-row>label>span{font-size:8px!important;min-height:25px}
+  .kick-control-row #kickTimer,.kick-control-row #textdelay,.kick-control-row #delayBatch,.kick-control-row #textloop,.kick-control-row #burstSize{height:42px!important;font-size:11px!important}
+}
+@media(max-width:360px){
+  .kick-control-row{column-gap:4px}
+  .kick-control-row>label>span{font-size:7px!important}
+  .kick-control-row #kickTimer,.kick-control-row #textdelay,.kick-control-row #delayBatch,.kick-control-row #textloop,.kick-control-row #burstSize{font-size:10px!important}
+}</style>
+</style>
+
+<style>
+/* MIGSOCK — responsive single-row WebSocket cards */
+/* KICK ALL PROGRESS — visual-only polish */
+#kickProgress{border-color:rgba(37,99,235,.42)!important;background:linear-gradient(180deg,rgba(4,15,38,.94),rgba(2,8,24,.96))!important;box-shadow:inset 0 1px 0 rgba(96,165,250,.06),0 8px 24px rgba(0,0,0,.18);border-radius:16px!important;padding:13px!important}
+#kickProgress>div:first-child{min-height:28px}
+#kickProgressText{font-size:11px!important;font-weight:900!important;padding:4px 9px;border-radius:999px;background:rgba(30,64,175,.18);border:1px solid rgba(59,130,246,.35)}
+#kickProgressBar{height:100%!important;background:linear-gradient(90deg,#2563eb,#38bdf8)!important;box-shadow:0 0 12px rgba(56,189,248,.28)}
+#kickProgress>div:nth-child(2){height:9px!important;border:1px solid rgba(59,130,246,.25);background:rgba(15,23,42,.9)!important;border-radius:999px!important}
+#kickProgressStep{font-size:10px!important;color:#94a3b8!important;padding-top:1px}
+#kickProgress>div:nth-child(4){font-size:10px!important;color:#93c5fd!important;letter-spacing:.04em}
+.kick-troop-progress-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+.kick-troop-progress{padding:8px 9px 7px;border:1px solid rgba(59,130,246,.48);border-radius:12px;background:linear-gradient(180deg,rgba(15,38,78,.72),rgba(2,12,30,.9));box-shadow:inset 0 0 16px rgba(37,99,235,.07),0 4px 12px rgba(0,0,0,.12)}
+.kick-troop-progress-head{margin-bottom:7px;font-size:10px;line-height:1.1;color:#c7dcff}
+.kick-troop-progress-head span:first-child{font-size:11px;color:#7db8ff}
+.kick-troop-progress-track{height:7px;border:0;background:rgba(15,23,42,.92);box-shadow:inset 0 1px 3px rgba(0,0,0,.55)}
+.kick-troop-progress-bar{background:linear-gradient(90deg,#2563eb,#38bdf8)!important;box-shadow:0 0 9px rgba(56,189,248,.42)}
+@media(max-width:365px){.kick-troop-progress-grid{gap:6px}.kick-troop-progress{padding:7px 7px 6px}.kick-troop-progress-head{font-size:9px}.kick-troop-progress-head span:first-child{font-size:10px}}
+#accounts{display:flex;flex-direction:column;gap:7px;padding-top:2px}
+.troop-card{position:relative;background:linear-gradient(180deg,rgba(5,13,32,.96),rgba(2,7,20,.96));border:1px solid rgba(30,64,175,.42);border-radius:15px;padding:6px 7px;box-shadow:inset 0 1px 0 rgba(96,165,250,.06),0 6px 18px rgba(0,0,0,.18);overflow:hidden}
+.troop-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,#0ea5e9,#2563eb,#7c3aed);opacity:.75}
+.troop-main{display:grid;grid-template-columns:26px 18px minmax(0,1fr) minmax(0,1fr) 42px 28px 28px;align-items:center;gap:4px;min-width:0;width:100%}
+.troop-id{display:contents}
+.troop-name{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(180deg,#0b4ea2,#082c68);border:1px solid rgba(37,99,235,.7);font-size:9px;font-weight:800;color:#e0f2fe;line-height:1;box-shadow:0 0 10px rgba(37,99,235,.2);box-sizing:border-box}
+.troop-status{position:relative;width:16px;height:16px;padding:0;margin:0;display:block;box-sizing:border-box;border-radius:50% 50% 50% 2px;transform:rotate(-45deg);font-size:0;line-height:0;white-space:nowrap;color:#94a3b8;background:#334155;border:1px solid #64748b;box-shadow:0 0 6px rgba(100,116,139,.35);overflow:visible}
+.troop-status:before{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;transform:translate(-50%,-50%) rotate(45deg);border-radius:50%;background:#cbd5e1;box-shadow:0 0 6px currentColor}
+.troop-status:after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid currentColor;opacity:.18;animation:statusRing 2s ease-out infinite}
+.troop-status.online{color:#34d399;background:rgba(4,78,59,.95);border-color:#10b981;box-shadow:0 0 10px rgba(16,185,129,.45)}
+.troop-status.online:before{background:#ecfdf5;box-shadow:0 0 8px #34d399}
+.troop-status.suspend{color:#fbbf24;background:rgba(120,53,15,.95);border-color:#f59e0b;box-shadow:0 0 10px rgba(245,158,11,.42)}
+.troop-status.suspend:before{background:#fff7ed;box-shadow:0 0 8px #f59e0b}
+.troop-status.error{color:#fb7185;background:rgba(127,29,29,.95);border-color:#f43f5e;box-shadow:0 0 10px rgba(244,63,94,.42)}
+.troop-status.error:before{background:#fff1f2;box-shadow:0 0 8px #fb7185}
+.troop-status.connecting{color:#f59e0b;background:rgba(120,53,15,.95);border-color:#f59e0b;box-shadow:0 0 10px rgba(245,158,11,.42)}
+.troop-status.connecting:before{background:#fff7ed;box-shadow:0 0 8px #f59e0b}
+.troop-status.login{color:#60a5fa;background:rgba(30,64,175,.95);border-color:#3b82f6;box-shadow:0 0 10px rgba(59,130,246,.4)}
+.troop-status.login:before{background:#eff6ff;box-shadow:0 0 8px #60a5fa}
+.troop-status.offline{color:#94a3b8;background:rgba(30,41,59,.95);border-color:#475569;box-shadow:none}
+.troop-status.offline:before{background:#cbd5e1;box-shadow:none}
+.troop-credentials{display:contents;min-width:0}
+.troop-input{width:100%;min-width:0;height:29px;background:#ffffff !important;border:1px solid rgba(51,65,85,.85);border-radius:8px;padding:0 6px;color:#0f172a !important;font-size:9px;line-height:1;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis}
+.troop-input::placeholder{color:#64748b;opacity:1}
+.troop-input:focus{background:#ffffff !important;color:#0f172a !important;border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,.18)}
+.troop-balance{height:29px;min-width:0;width:100%;padding:0 4px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:8px;font-weight:800;color:#e0f2fe;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:linear-gradient(180deg,rgba(9,44,100,.72),rgba(5,23,58,.9));border:1px solid rgba(37,99,235,.65);border-radius:999px;box-shadow:0 0 10px rgba(37,99,235,.12);box-sizing:border-box}
+.troop-icon{width:28px;height:28px;padding:0;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:transform .12s,background .12s,border-color .12s;cursor:pointer;box-sizing:border-box}
+.troop-icon:active{transform:scale(.92)}
+.troop-icon svg{width:14px;height:14px}
+.login-icon{color:#34d399;background:rgba(4,78,59,.3);border:1px solid rgba(16,185,129,.65);box-shadow:0 0 9px rgba(16,185,129,.08)}
+.login-icon:hover{background:rgba(6,95,70,.5)}
+.logout-icon{color:#fb7185;background:rgba(127,29,29,.22);border:1px solid rgba(225,29,72,.58)}
+.logout-icon:hover{background:rgba(136,19,55,.35)}
+@keyframes statusRing{0%{transform:scale(.7);opacity:.45}70%,100%{transform:scale(1.45);opacity:0}}
+
+.kick-troop-progress-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:7px}.kick-troop-progress{display:block;width:100%;min-width:0;box-sizing:border-box;padding:6px 7px 5px;border:1px solid rgba(59,130,246,.45);border-radius:9px;background:linear-gradient(180deg,rgba(15,38,78,.68),rgba(2,12,30,.78));font-size:8px;line-height:1;box-shadow:inset 0 0 12px rgba(37,99,235,.06)}.kick-troop-progress-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:5px;color:#93c5fd;font-weight:900;letter-spacing:.2px;white-space:nowrap}.kick-troop-progress-head span:first-child{color:#60a5fa}.kick-troop-progress-track{display:block;width:100%;height:7px;min-width:0;border-radius:999px;background:rgba(15,23,42,.95);border:1px solid rgba(59,130,246,.55);box-shadow:inset 0 1px 3px rgba(0,0,0,.55),0 0 8px rgba(37,99,235,.12);overflow:hidden;box-sizing:border-box}.kick-troop-progress-bar{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#1d4ed8 0%,#2563eb 55%,#38bdf8 100%);transition:width .22s ease;box-shadow:0 0 8px rgba(56,189,248,.45)}.kick-troop-progress-bar.has-failure{background:linear-gradient(90deg,#2563eb 0%,#38bdf8 55%,#f59e0b 100%)}.kick-troop-progress-fail{display:block;min-height:8px;margin-top:3px;text-align:right;color:#fb7185;font-size:7px;font-weight:800;white-space:nowrap}@media(max-width:365px){.kick-troop-progress-grid{gap:4px}.kick-troop-progress{padding:5px 5px 4px}.kick-troop-progress-track{height:6px}}
+@media(max-width:365px){
+  .troop-card{padding:5px 6px;border-radius:12px}
+  .troop-main{grid-template-columns:24px 17px minmax(0,1fr) minmax(0,1fr) 38px 26px 26px;gap:3px}
+  .troop-name{width:24px;height:24px;font-size:8px}
+  .troop-status{width:15px;height:15px}
+  .troop-input{height:27px;font-size:8px;padding:0 5px}
+  .troop-balance{height:27px;font-size:7px}
+  .troop-icon{width:26px;height:26px}
+  .troop-icon svg{width:13px;height:13px}
+}
+</style>
+
+<style id="login-mobile-animation">
+/* Login UI - mobile friendly, animated, tanpa mengubah logic */
+.login-icon{
+  position:relative;
+  overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .18s ease, box-shadow .25s ease, background .25s ease;
+}
+.login-icon::before{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.20) 50%,transparent 65%);
+  transform:translateX(-70%) rotate(8deg);
+  animation:loginShine 3.8s ease-in-out infinite;
+  pointer-events:none;
+}
+.login-icon svg{position:relative;z-index:1}
+.login-icon:hover{
+  transform:translateY(-1px) scale(1.04);
+  box-shadow:0 0 18px rgba(16,185,129,.24);
+}
+.login-icon:active{transform:scale(.90)}
+.troop-card{
+  animation:troopIn .45s cubic-bezier(.2,.8,.2,1) both;
+}
+.troop-card:nth-child(1){animation-delay:.02s}
+.troop-card:nth-child(2){animation-delay:.05s}
+.troop-card:nth-child(3){animation-delay:.08s}
+.troop-card:nth-child(4){animation-delay:.11s}
+.troop-card:nth-child(5){animation-delay:.14s}
+.troop-card:nth-child(6){animation-delay:.17s}
+.troop-card:nth-child(7){animation-delay:.20s}
+.troop-card:nth-child(8){animation-delay:.23s}
+.troop-card:nth-child(9){animation-delay:.26s}
+.troop-card:nth-child(10){animation-delay:.29s}
+.troop-input{
+  transition:border-color .22s ease,box-shadow .22s ease,transform .18s ease,background .22s ease;
+}
+.troop-input:focus{
+  transform:translateY(-1px);
+  background:#ffffff !important;color:#0f172a !important;
+  box-shadow:0 0 0 2px rgba(59,130,246,.18),0 8px 20px rgba(0,0,0,.16);
+}
+.troop-status.online{
+  animation:onlinePulse 2.2s ease-in-out infinite;
+}
+@keyframes troopIn{
+  from{opacity:0;transform:translateY(8px) scale(.985)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes loginShine{
+  0%,55%{transform:translateX(-75%) rotate(8deg)}
+  75%,100%{transform:translateX(75%) rotate(8deg)}
+}
+@keyframes onlinePulse{
+  0%,100%{box-shadow:0 0 8px rgba(16,185,129,.10)}
+  50%{box-shadow:0 0 14px rgba(16,185,129,.22)}
+}
+@media(max-width:430px){
+  .login-icon{box-shadow:0 0 12px rgba(16,185,129,.12)}
+  .troop-card{animation-duration:.38s}
+}
+@media(prefers-reduced-motion:reduce){
+  .troop-card,.login-icon::before,.troop-status.online{
+    animation:none!important;
+  }
+  .login-icon,.troop-input{transition:none!important}
+}
+</style>
+
+
+<style id="main-login-animation">
+.login-all-button{
+  position:relative;
+  overflow:hidden;
+  transition:transform .18s ease,box-shadow .25s ease,background .25s ease;
+}
+.login-all-button::after{
+  content:"";
+  position:absolute;
+  top:0;bottom:0;width:45%;
+  left:-55%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+  transform:skewX(-18deg);
+  animation:mainLoginSweep 4.5s ease-in-out infinite;
+}
+.login-all-button svg,.login-all-button{
+  isolation:isolate;
+}
+.login-all-button:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 26px rgba(16,185,129,.18);
+}
+.login-all-button:active{transform:scale(.97)}
+@keyframes mainLoginSweep{
+  0%,55%{left:-55%}
+  80%,100%{left:120%}
+}
+@media(prefers-reduced-motion:reduce){
+  .login-all-button::after{animation:none}
+}
+</style>
+
+
+<style id="login-full-width">
+@media (max-width:768px){
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+.login-container,.login-panel,.login-card,.login-box{
+width:100%!important;max-width:none!important;
+margin-left:0!important;margin-right:0!important;
+box-sizing:border-box!important;border-radius:0!important;
+}
+.login-container{padding-left:8px!important;padding-right:8px!important}
+}
+</style>
+
+<style id="command-toggle-style">
+#accountCommandBox{min-height:48px}
+#accountCommandButtons{transition:opacity .2s ease,transform .2s ease,max-height .2s ease}
+#mainControlPanel.commands-collapsed > :not(#toggleAccountCommands){display:none!important}
+#mainControlPanel.commands-collapsed{padding-top:10px!important;padding-bottom:24px!important;gap:0!important}
+/* Floating collapse control: stays above every panel and remains clickable when the main panel is collapsed. */
+#toggleAccountCommands{
+  position:fixed!important;
+  right:16px!important;
+  bottom:18px!important;
+  z-index:99999!important;
+  width:50px!important;
+  height:50px!important;
+  min-width:50px!important;
+  min-height:50px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:linear-gradient(180deg,#3b82f6,#2563eb)!important;
+  border:2px solid #60a5fa!important;
+  color:#ffffff!important;
+  box-shadow:0 10px 28px rgba(37,99,235,.48),0 0 0 4px rgba(37,99,235,.16)!important;
+  border-radius:999px!important;
+  cursor:pointer!important;
+  touch-action:manipulation!important;
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease!important;
+}
+#toggleAccountCommands svg{width:25px!important;height:25px!important;display:block!important}
+#toggleAccountCommands:hover{background:linear-gradient(180deg,#60a5fa,#2563eb)!important;transform:scale(1.07)!important;box-shadow:0 12px 32px rgba(37,99,235,.58),0 0 0 4px rgba(37,99,235,.2)!important}
+#toggleAccountCommands:active{transform:scale(.94)!important}
+@media (max-width:430px){#toggleAccountCommands{right:12px!important;bottom:14px!important;width:48px!important;height:48px!important;min-width:48px!important;min-height:48px!important}}
+</style>
+<style id="modern-dashboard-v16">
+  body{background:radial-gradient(circle at 50% -10%,#102a62 0,#070b16 38%,#05070c 100%)!important}
+  .max-w-4xl{max-width:960px!important}
+  #pageHeader{border-color:rgba(37,99,235,.7)!important;background:linear-gradient(145deg,rgba(8,25,58,.96),rgba(4,10,26,.96))!important;box-shadow:0 12px 34px rgba(0,0,0,.34),0 0 30px rgba(37,99,235,.10)!important}
+  #mainControlPanel,.bg-slate-900\/90{background:linear-gradient(145deg,rgba(10,25,55,.94),rgba(5,11,27,.94))!important;border-color:rgba(14,116,234,.62)!important;box-shadow:0 14px 38px rgba(0,0,0,.28),0 0 28px rgba(37,99,235,.07)!important}
+  .modern-input,.troop-input{border:1px solid #cbd5e1!important;background:#fff!important;color:#0f172a!important}
+  .modern-input{height:44px!important;border-radius:15px!important}
+  .compact-main{height:42px!important;border-radius:13px!important;font-size:13px!important}
+  .compact-save{height:40px!important;border-radius:12px!important}
+  .compact-room{width:min(100%,520px)!important;max-width:520px!important;height:48px!important;border-radius:16px!important;font-size:14px!important}
+  .troop-range-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:12px}
+  .range-control{display:flex;align-items:center;gap:10px;min-width:0}
+  .range-control label{font-size:12px;font-weight:700;color:#cbd5e1;white-space:nowrap}
+  .compact-range{width:82px!important;height:40px!important;font-size:13px!important;font-weight:800!important;border-radius:13px!important;padding:0 8px!important}
+  .clear-troop-button{height:42px;min-width:148px;padding:0 16px;border-radius:14px;border:1px solid rgba(244,63,94,.62);background:linear-gradient(180deg,rgba(136,19,55,.35),rgba(76,5,25,.55));color:#fb7185;display:flex;align-items:center;justify-content:center;gap:8px;font-size:11px;font-weight:800;box-shadow:0 0 18px rgba(244,63,94,.10);transition:transform .15s,box-shadow .2s,background .2s}
+  .clear-troop-button:hover{background:linear-gradient(180deg,rgba(190,24,93,.45),rgba(127,29,29,.55));box-shadow:0 0 24px rgba(244,63,94,.20);transform:translateY(-1px)}
+  .clear-troop-button:active{transform:scale(.96)}
+  #accountCommandBox{padding-top:14px!important}
+  #accountCommandButtons button{min-height:48px!important;border-radius:15px!important;font-size:13px!important}
+  #toggleAccountCommands{right:18px!important;bottom:22px!important;width:54px!important;height:54px!important;min-width:54px!important;min-height:54px!important;border:2px solid #60a5fa!important;background:linear-gradient(180deg,#3b82f6,#1d4ed8)!important;box-shadow:0 12px 34px rgba(37,99,235,.55),0 0 0 5px rgba(37,99,235,.14)!important}
+  #toggleAccountCommands svg{width:28px!important;height:28px!important}
+  #mainControlPanel.commands-collapsed{min-height:20px!important;height:20px!important;padding:0!important;background:transparent!important;border-color:transparent!important;box-shadow:none!important;overflow:visible!important}
+  #mainControlPanel.commands-collapsed #toggleAccountCommands{bottom:22px!important}
+  @media(max-width:640px){
+    .max-w-4xl{padding-left:10px!important;padding-right:10px!important}
+    #pageHeader img{height:110px!important}
+    #mainControlPanel{padding:14px!important;border-radius:22px!important}
+    .troop-range-row{grid-template-columns:1fr auto 1fr;gap:7px}
+    .range-control{gap:6px}
+    .range-control label{font-size:11px}
+    .compact-range{width:64px!important;height:38px!important}
+    .clear-troop-button{min-width:108px;height:40px;padding:0 9px;font-size:9px;gap:5px}
+    .clear-troop-button svg{width:17px!important;height:17px!important}
+    .compact-room{height:44px!important;width:min(100%,380px)!important}
+    #toggleAccountCommands{right:12px!important;bottom:14px!important;width:54px!important;height:54px!important}
+  }
+</style>
+
+<style id="commandbox-image-match-v17">
+  .command-section{border:1px solid rgba(37,99,235,.62);border-radius:20px;padding:14px;background:linear-gradient(145deg,rgba(5,22,52,.78),rgba(3,12,30,.72));box-shadow:inset 0 1px rgba(96,165,250,.05),0 10px 28px rgba(0,0,0,.18)}
+  .command-title{display:flex;align-items:center;gap:10px;color:#eaf2ff;font-size:16px;font-weight:800;margin-bottom:12px}
+  .command-title-icon{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#dbeafe;border:1px solid rgba(59,130,246,.55);background:rgba(8,47,107,.42);box-shadow:0 0 14px rgba(37,99,235,.14)}
+  .command-title-icon svg{width:19px;height:19px}
+  .save-load-row{display:grid;grid-template-columns:minmax(0,1fr) 64px 64px;gap:10px;align-items:center}
+  .command-input{height:48px!important;border-radius:15px!important;font-size:14px!important;padding:0 14px!important}
+  .command-icon-button{height:48px;width:64px;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.18s ease;box-sizing:border-box}
+  .command-icon-button svg{width:25px;height:25px}
+  .save-button{background:#2563eb;color:#fff;border:1px solid #3b82f6;box-shadow:0 8px 22px rgba(37,99,235,.25)}
+  .load-button{background:#17243a;color:#e2e8f0;border:1px solid #334155}
+  .command-icon-button:active,.command-wide-button:active{transform:scale(.96)}
+  .troop-range-row{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(150px,1.05fr) minmax(0,1fr)!important;align-items:end;gap:12px!important;padding-top:2px!important;border-top:0!important}
+  .range-box{display:flex;align-items:center;gap:10px;min-width:0;padding:8px 10px;border:1px solid rgba(37,99,235,.5);border-radius:14px;background:rgba(4,18,43,.55)}
+  .range-label{font-size:13px;font-weight:800;color:#cbd5e1;white-space:nowrap}
+  .range-box .compact-range{width:74px!important;flex:1;min-width:55px;height:40px!important}
+  .clear-troop-button{width:100%;height:48px;min-width:0!important;border-radius:14px!important;font-size:12px!important}
+  .clear-troop-button svg{width:20px!important;height:20px!important}
+  .main-command-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  .main-command-field{min-width:0;border:1px solid rgba(37,99,235,.5);border-radius:14px;padding:9px 10px 10px;background:rgba(4,18,43,.48)}
+  .main-command-field label{display:block;font-size:12px;font-weight:800;color:#cbd5e1;margin:0 0 7px 2px}
+  .main-command-field .command-input{width:100%;box-sizing:border-box}
+  .command-actions-grid{margin-top:10px}
+  .command-wide-button{height:48px;border-radius:14px;border:1px solid rgba(59,130,246,.65);display:flex;align-items:center;justify-content:center;gap:10px;color:#eff6ff;font-weight:800;font-size:13px;cursor:pointer;transition:.18s ease}
+  .command-wide-button svg{width:20px;height:20px}
+  .generate-button{background:linear-gradient(180deg,#1459d9,#123f9d);box-shadow:0 8px 24px rgba(37,99,235,.18)}
+  .setpass-button{background:linear-gradient(180deg,#17345f,#132744);border-color:rgba(96,165,250,.55)}
+  .room-command-row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+  .compact-room{width:min(100%,520px)!important;max-width:520px!important;height:48px!important;text-align:center!important}
+  #toggleAccountCommands{position:fixed!important;right:18px!important;bottom:22px!important;z-index:999999!important}
+  @media(max-width:600px){
+    .command-section{padding:12px;border-radius:17px}
+    .save-load-row{grid-template-columns:minmax(0,1fr) 54px 54px;gap:7px}
+    .command-icon-button{width:54px;height:46px}
+    .command-input{height:44px!important;font-size:13px!important}
+    .troop-range-row{grid-template-columns:minmax(0,1fr) minmax(125px,1.1fr) minmax(0,1fr)!important;gap:7px!important}
+    .range-box{padding:7px 6px;gap:5px}
+    .range-label{font-size:11px}
+    .range-box .compact-range{height:38px!important;font-size:12px!important}
+    .clear-troop-button{height:44px;font-size:10px!important;padding:0 5px!important;gap:5px}
+    .main-command-grid{gap:7px}
+    .main-command-field{padding:7px}
+    .main-command-field label{font-size:10px;margin-bottom:5px}
+    .command-wide-button{height:44px;font-size:10px;gap:6px}
+    .command-wide-button svg{width:17px;height:17px}
+    .room-command-row{gap:10px}
+    .compact-room{height:44px!important}
+  }
+</style>
+
+<style id="suicide-toggle-style">
+.suicide-toggle{
+  height:32px;
+  padding:0 10px;
+  border-radius:9px;
+  border:1px solid rgba(100,116,139,.55);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.04em;
+  cursor:pointer;
+  transition:transform .12s ease,background .15s ease,border-color .15s ease,box-shadow .15s ease;
+}
+.suicide-toggle:active{transform:scale(.94)}
+.suicide-off{color:#fff;background:rgba(220,38,38,.86);border-color:rgba(248,113,113,.9);box-shadow:0 0 10px rgba(220,38,38,.18)}
+.suicide-off:hover{background:rgba(239,68,68,.95)}
+.suicide-on{color:#fff;background:rgba(22,163,74,.9);border-color:rgba(74,222,128,.95);box-shadow:0 0 12px rgba(22,163,74,.25)}
+.suicide-on:hover{background:rgba(34,197,94,.98)}
+@media(max-width:430px){
+  .suicide-toggle{height:30px;padding:0 8px;font-size:8px}
+}
+</style>
+
+<style id="target-kick-layout-requested-only">
+/* Layout-only adjustment requested by user. No JS/API/function changes. */
+.kick-control-row{
+  display:grid !important;
+  grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+  grid-template-areas:
+    "action action action action reset reset"
+    "timer target batch loop brute brute" !important;
+  gap:10px !important;
+  align-items:end !important;
+  margin-top:4px !important;
+}
+.kick-control-row .kick-action-box{
+  grid-area:action !important;
+  min-width:0 !important;
+  width:100% !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1.25fr) minmax(0,.8fr) !important;
+  gap:8px !important;
+  align-items:center !important;
+}
+.kick-control-row .kick-action-box #kickAllButton{
+  width:100% !important;
+  height:50px !important;
+  min-width:0 !important;
+  border-radius:14px !important;
+  font-size:13px !important;
+}
+.kick-control-row .kick-action-box #timerValue{
+  width:100% !important;
+  height:50px !important;
+  min-width:0 !important;
+  margin-top:0 !important;
+  border-radius:14px !important;
+  font-size:12px !important;
+}
+.kick-control-row>label:nth-child(2){grid-area:timer !important}
+.kick-control-row>label:nth-child(3){grid-area:target !important}
+.kick-control-row>label:nth-child(4){grid-area:batch !important}
+.kick-control-row>label:nth-child(5){grid-area:loop !important}
+.kick-control-row>label:nth-child(6){grid-area:brute !important}
+.kick-control-row .reset-timer-wrap{
+  grid-area:reset !important;
+  width:100% !important;
+  min-width:0 !important;
+  display:flex !important;
+  justify-content:stretch !important;
+  align-items:end !important;
+}
+.kick-control-row .reset-timer-wrap button{
+  width:100% !important;
+  height:50px !important;
+  border-radius:14px !important;
+}
+.kick-control-row>label>span{
+  min-height:30px !important;
+  margin-bottom:6px !important;
+  font-size:10px !important;
+  line-height:1.15 !important;
+}
+.kick-control-row #kickTimer,
+.kick-control-row #textdelay,
+.kick-control-row #delayBatch,
+.kick-control-row #textloop,
+.kick-control-row #burstSize{
+  width:100% !important;
+  height:50px !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  border-radius:14px !important;
+  padding-left:8px !important;
+  padding-right:8px !important;
+  font-size:13px !important;
+}
+.kick-control-row #burstSize{
+  text-align:left !important;
+  padding-left:12px !important;
+  padding-right:28px !important;
+}
+@media(max-width:700px){
+  .kick-control-row{
+    grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+    gap:8px !important;
+  }
+  .kick-control-row .kick-action-box{
+    grid-template-columns:minmax(0,1.25fr) minmax(0,.8fr) !important;
+    gap:7px !important;
+  }
+  .kick-control-row .kick-action-box #kickAllButton,
+  .kick-control-row .kick-action-box #timerValue,
+  .kick-control-row .reset-timer-wrap button,
+  .kick-control-row #kickTimer,
+  .kick-control-row #textdelay,
+  .kick-control-row #delayBatch,
+  .kick-control-row #textloop,
+  .kick-control-row #burstSize{
+    height:46px !important;
+  }
+  .kick-control-row>label>span{font-size:9px !important;min-height:27px !important}
+  .kick-control-row #burstSize{font-size:12px !important;padding-left:9px !important;padding-right:24px !important}
+}
+@media(max-width:430px){
+  .kick-control-row{gap:6px !important}
+  .kick-control-row .kick-action-box{gap:6px !important}
+  .kick-control-row .kick-action-box #kickAllButton,
+  .kick-control-row .kick-action-box #timerValue,
+  .kick-control-row .reset-timer-wrap button,
+  .kick-control-row #kickTimer,
+  .kick-control-row #textdelay,
+  .kick-control-row #delayBatch,
+  .kick-control-row #textloop,
+  .kick-control-row #burstSize{height:44px !important}
+  .kick-control-row>label>span{font-size:8px !important;min-height:25px !important}
+  .kick-control-row #burstSize{font-size:11px !important}
+}
+</style>
+
+</head>
+<body class="bg-[#07090e] text-slate-100 min-h-screen selection:bg-blue-600 selection:text-white">
+
+<div class="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
+  
+  <!-- Header Card -->
+  <div id="pageHeader" class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-xl border border-slate-800/80 rounded-2xl sm:rounded-3xl p-0 shadow-2xl relative overflow-hidden flex flex-col items-center justify-center text-center">
+    <div class="absolute -right-12 -top-12 w-48 h-48 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -left-12 -bottom-12 w-48 h-48 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="relative z-10 w-full flex items-center justify-center overflow-hidden">
+      <img
+        src="/logo.webp"
+        alt="migsock TEAM"
+        class="block w-full max-w-[620px] h-[150px] sm:h-[190px] object-contain object-center"
+      >
+    </div>
+  </div>
+
+  <div id="mainControlPanel" class="relative bg-slate-900/90 backdrop-blur-xl border border-blue-700/60 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl space-y-4 sm:space-y-5">
+
+    <!-- Save / Load -->
+    <div class="command-section save-load-section">
+      <div class="command-title">
+        <span class="command-title-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 4h11l3 3v13H5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 4v5h8V4M8 20v-6h8v6"/></svg>
+        </span>
+        <span>Save / Load</span>
+      </div>
+      <div class="save-load-row">
+        <input id="saveName" class="modern-input command-input save-name-input" value="troop1" placeholder="Nama file save" autocomplete="off">
+        <button id="saveAccounts" class="command-icon-button save-button" title="Save JSON" aria-label="Save JSON">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        </button>
+        <button id="loadAccounts" class="command-icon-button load-button" title="Load JSON" aria-label="Load JSON">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        </button>
+      </div>
+      <input id="loadFile" class="hidden" type="file" accept="application/json,.json">
+    </div>
+
+    <!-- Troop command box -->
+    <div class="command-section troop-command-section">
+      <div class="command-title">
+        <span class="command-title-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        </span>
+        <span>Troop</span>
+      </div>
+
+      <div class="troop-range-row">
+        <label class="range-box" for="rangeStart">
+          <span class="range-label">Mulai</span>
+          <input id="rangeStart" type="number" class="modern-input compact-range" value="1" inputmode="numeric">
+        </label>
+
+        <button id="clearFields" class="clear-troop-button" title="Hapus Troop" aria-label="Hapus Troop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+
+        <label class="range-box" for="rangeEnd">
+          <span class="range-label">Akhir</span>
+          <input id="rangeEnd" type="number" class="modern-input compact-range" value="10" inputmode="numeric">
+        </label>
+      </div>
+
+      <div class="main-command-grid">
+        <div class="main-command-field">
+          <label for="mainTroop">Main Troop</label>
+          <input id="mainTroop" class="modern-input command-input" placeholder="Contoh: u1" autocomplete="off">
+        </div>
+        <div class="main-command-field">
+          <label for="mainPassword">Main Password</label>
+          <input id="mainPassword" type="password" class="modern-input command-input" placeholder="Password akun" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="main-command-grid command-actions-grid">
+        <button id="generateTroop" class="command-wide-button generate-button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M3 12h18"/></svg>
+          <span>GENERATE TROOP</span>
+        </button>
+        <button id="generatePassword" class="command-wide-button setpass-button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="10" width="14" height="10" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 10V7a4 4 0 018 0v3M12 14v2"/></svg>
+          <span>SET PASS</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Accounts List Container -->
+    <div id="accounts" class="space-y-1.5 pt-1"></div>
+
+    <div id="accountCommandBox" class="relative pt-2.5 border-t border-slate-800/60">
+      <div id="accountCommandButtons" class="flex flex-row gap-2">
+        <button id="loginAll" class="login-all-button flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-3 rounded-xl text-xs sm:text-sm shadow-lg shadow-emerald-600/20 transition-all active:scale-95 flex items-center justify-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          LOGIN ALL
+        </button>
+        <button id="logoutAll" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 px-3 rounded-xl text-xs sm:text-sm border border-slate-700 transition-all active:scale-95 flex items-center justify-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          LOGOUT ALL
+        </button>
+      </div>
+    </div>
+    <button id="toggleAccountCommands" type="button" onclick="toggleAccountCommands()" title="Sembunyikan bagian atas" aria-label="Sembunyikan bagian atas" aria-expanded="true">
+      <svg id="toggleAccountCommandsIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path stroke-linecap="round" stroke-linejoin="round" d="m6 15 6-6 6 6"/></svg>
+    </button>
+  </div>
+
+  <div class="bg-slate-900/90 backdrop-blur-xl border border-blue-700/50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl space-y-3.5">
+    <div class="room-command-row">
+      <input id="room" class="modern-input compact-room" placeholder="Nama room tujuan..." autocomplete="off">
+      <span id="roomJoinStatus" class="text-[10px] sm:text-xs text-slate-500 self-center whitespace-nowrap" aria-live="polite"></span>
+      <div class="grid grid-cols-2 sm:flex sm:flex-row gap-2.5">
+        <button onclick="joinAll()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-5 py-3 rounded-xl text-xs sm:text-sm shadow-lg shadow-blue-600/20 transition-all active:scale-95 whitespace-nowrap">JOIN</button>
+        <button onclick="leaveAll()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-3 rounded-xl text-xs sm:text-sm border border-slate-700 transition-all active:scale-95 whitespace-nowrap">LEAVE</button>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-2.5">
+      <button onclick="participants()" class="bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-bold py-3 px-3 rounded-xl text-xs sm:text-sm border border-slate-700 transition-all active:scale-95">LIST USER</button>
+      <button onclick="balanceAll()" class="bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-bold py-3 px-3 rounded-xl text-xs sm:text-sm border border-slate-700 transition-all active:scale-95">REFRESH SALDO</button>
+    </div>
+  </div>
+
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+    
+    <!-- Participants Column -->
+    <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl space-y-3.5 flex flex-col">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm sm:text-base font-bold text-slate-200">List User</h3>
+        <div></div>
+      </div>
+      <div id="participantsList" class="flex-1 min-h-[200px] max-h-[280px] overflow-y-auto bg-slate-950/80 border border-slate-800/80 rounded-xl p-2 space-y-1.5">
+        <div class="flex items-center justify-center h-full text-xs text-slate-500 py-10">Belum ada data user.</div>
+      </div>
+    </div>
+
+    <!-- Target Kick Column -->
+    <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl space-y-3.5 flex flex-col">
+      <div class="flex items-center justify-between gap-2">
+        <h3 class="text-sm sm:text-base font-bold text-slate-200">Target Kick</h3>
+        <div class="flex items-center gap-1.5">
+          <button id="suicideToggle" type="button" onclick="toggleSuicide()" class="suicide-toggle suicide-off" title="Suicide OFF" aria-pressed="false" aria-label="Suicide OFF">SUICIDE OFF</button>
+          <span class="text-[11px] font-medium text-slate-400 bg-slate-950 px-2.5 py-1 rounded-full border border-slate-800/80">Daftar Eksekusi</span>
+          <button onclick="clearTargets()" class="bg-slate-800 hover:bg-slate-700 text-rose-400 border border-rose-900/40 hover:bg-rose-950/30 font-bold rounded-lg text-xs transition-all active:scale-95 flex items-center justify-center w-9 h-9 shrink-0" title="Hapus List Target Kick" aria-label="Hapus List Target Kick">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="targetList" class="flex-1 min-h-[200px] max-h-[280px] overflow-y-auto bg-slate-950/80 border border-slate-800/80 rounded-xl p-2 space-y-1.5">
+        <div class="flex items-center justify-center h-full text-xs text-slate-500 py-10">Belum ada target.</div>
+      </div>
+      <div class="kick-control-row">
+        <div class="kick-action-box">
+          <button id="kickAllButton" onclick="kickSelectedTargets()" class="w-full h-9 bg-rose-600 hover:bg-rose-500 text-white font-bold px-2 rounded-lg text-[10px] transition-all shadow-md shadow-rose-600/20 active:scale-95">KICK ALL</button>
+          <div id="timerValue" class="mt-1 w-full h-6 flex items-center justify-center rounded-lg bg-slate-950/80 border border-slate-800 text-[9px] font-semibold text-slate-400">60000</div>
+        </div>
+        <label class="min-w-0">
+          <span class="block text-[8px] uppercase tracking-wide text-slate-500 mb-1 text-center">Timer</span>
+          <input id="kickTimer" type="number" min="0" step="1" value="1500" class="modern-input w-full h-9 bg-slate-950/80 border border-slate-700 rounded-lg px-1 text-center text-[10px] text-slate-200 outline-none focus:border-blue-500" inputmode="numeric">
+        </label>
+        <label class="min-w-0">
+          <span class="block text-[8px] uppercase tracking-wide text-slate-500 mb-1 text-center">Delay Target</span>
+          <input id="textdelay" type="number" min="0" step="1" value="15" class="modern-input w-full h-9 bg-slate-950/80 border border-slate-700 rounded-lg px-1 text-center text-[10px] text-slate-200 outline-none focus:border-blue-500" inputmode="numeric">
+        </label>
+        <label class="min-w-0">
+          <span class="block text-[8px] uppercase tracking-wide text-slate-500 mb-1 text-center">Delay Batch</span>
+          <input id="delayBatch" type="number" min="0" step="1" value="25" class="modern-input w-full h-9 bg-slate-950/80 border border-slate-700 rounded-lg px-1 text-center text-[10px] text-slate-200 outline-none focus:border-blue-500" inputmode="numeric">
+        </label>
+        <label class="min-w-0">
+          <span class="block text-[8px] uppercase tracking-wide text-slate-500 mb-1 text-center">Loop</span>
+          <input id="textloop" type="number" min="1" step="1" value="30" class="modern-input w-full h-9 bg-slate-950/80 border border-slate-700 rounded-lg px-1 text-center text-[10px] text-slate-200 outline-none focus:border-blue-500" inputmode="numeric">
+        </label>
+        <label class="min-w-0">
+          <span class="block text-[8px] uppercase tracking-wide text-slate-500 mb-1 text-center">Brute</span>
+          <select id="burstSize" class="modern-input w-full h-9 bg-slate-950/80 border border-slate-700 rounded-lg px-1 text-center text-[10px] text-slate-200 outline-none focus:border-blue-500">
+            <option value="1">Brute 1</option>
+            <option value="2">Brute 2</option>
+            <option value="3" selected>Brute 3</option>
+            <option value="4">Brute 4</option>
+            <option value="5">Brute 5</option>
+            <option value="6">Brute 6</option>
+            <option value="7">Brute 7</option>
+            <option value="8">Brute 8</option>
+            <option value="9">Brute 9</option>
+            <option value="10">Brute 10</option>
+          </select>
+        </label>
+
+
+        <div class="reset-timer-wrap">
+          <button onclick="resetTimer()" class="bg-blue-950/40 hover:bg-blue-900/50 text-blue-400 border border-blue-800/50 font-bold rounded-lg text-xs transition-all active:scale-95 flex items-center justify-center w-9 h-9 shrink-0" title="Reset Timer" aria-label="Reset Timer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="13" r="7"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v3l2 1M8.5 5.5 7 4m8.5 1.5L17 4M9 3h6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Save Set: moved below Target Kick controls only -->
+      <div class="save-set-inline">
+        <div class="save-set-inline-title">
+          <span class="command-title-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 4h11l3 3v13H5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 4v5h8V4M8 20v-6h8v6"/></svg>
+          </span>
+          <span>Save Set</span>
+        </div>
+        <div class="save-load-row save-set-inline-row">
+          <input id="setName" class="modern-input command-input save-name-input" value="set1" placeholder="Nama set" autocomplete="off">
+          <button id="saveSet" class="command-icon-button save-button" title="Save Set" aria-label="Save Set">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          </button>
+          <button id="loadSet" class="command-icon-button load-button" title="Load Set" aria-label="Load Set">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v-1a3 3 0 013-3h10a3 3 0 013 3v1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          </button>
+        </div>
+        <input id="loadSetFile" class="hidden" type="file" accept="application/json,.json">
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl space-y-3.5">
+    <div class="flex items-center justify-between gap-2">
+      <h3 class="sr-only">API Event</h3>
+    </div>
+    
+    
+    <div id="kickProgress" class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-3 space-y-2">
+      <div class="flex justify-between items-center gap-2 text-[11px] font-semibold">
+        <span class="text-slate-300">KICK ALL PROGRESS</span>
+        <span id="kickProgressText" class="text-blue-400">Siap</span>
+      </div>
+      <div class="h-2.5 rounded-full bg-slate-800 overflow-hidden">
+        <div id="kickProgressBar" class="h-full w-0 rounded-full bg-gradient-to-r from-blue-500 to-indigo-400 transition-all duration-300"></div>
+      </div>
+      <div class="flex justify-between gap-2 text-[10px]">
+        <span id="kickProgressStep" class="text-slate-400">Target 0/0</span>
+      </div>
+      <div class="text-[10px] font-semibold text-slate-400 pt-1">PROGRESS TARGET</div>
+      <div id="kickTargetProgress" class="grid grid-cols-5 gap-1"></div>
+      <div class="kick-troop-progress-grid" id="kickTroopProgressGrid" aria-label="Progress KICK per Troop">
+        <div class="kick-troop-progress" id="kickTroopProgress0" data-kick-troop="1"><div class="kick-troop-progress-head"><span>T1</span><span id="kickTroopProgressText0">0/0</span></div><div class="kick-troop-progress-track"><div id="kickTroopProgressBar0" class="kick-troop-progress-bar"></div></div><span id="kickTroopProgressFail0" class="kick-troop-progress-fail"></span></div>
+        <div class="kick-troop-progress" id="kickTroopProgress1" data-kick-troop="2"><div class="kick-troop-progress-head"><span>T2</span><span id="kickTroopProgressText1">0/0</span></div><div class="kick-troop-progress-track"><div id="kickTroopProgressBar1" class="kick-troop-progress-bar"></div></div><span id="kickTroopProgressFail1" class="kick-troop-progress-fail"></span></div>
+        <div class="kick-troop-progress" id="kickTroopProgress2" data-kick-troop="3"><div class="kick-troop-progress-head"><span>T3</span><span id="kickTroopProgressText2">0/0</span></div><div class="kick-troop-progress-track"><div id="kickTroopProgressBar2" class="kick-troop-progress-bar"></div></div><span id="kickTroopProgressFail2" class="kick-troop-progress-fail"></span></div>
+        <div class="kick-troop-progress" id="kickTroopProgress3" data-kick-troop="4"><div class="kick-troop-progress-head"><span>T4</span><span id="kickTroopProgressText3">0/0</span></div><div class="kick-troop-progress-track"><div id="kickTroopProgressBar3" class="kick-troop-progress-bar"></div></div><span id="kickTroopProgressFail3" class="kick-troop-progress-fail"></span></div>
+        <div class="kick-troop-progress" id="kickTroopProgress4" data-kick-troop="5"><div class="kick-troop-progress-head"><span>T5</span><span id="kickTroopProgressText4">0/0</span></div><div class="kick-troop-progress-track"><div id="kickTroopProgressBar4" class="kick-troop-progress-bar"></div></div><span id="kickTroopProgressFail4" class="kick-troop-progress-fail"></span></div>
+        <div class="kick-troop-progress" id="kickTroopProgress5" data-kick-troop="6"><div class="kick-troop-progress-head"><span>T6</span><span id="kickTroopProgressText5">0/0</span></div><div class="kick-troop-progress-track"><div id="kickTroopProgressBar5" class="kick-troop-progress-bar"></div></div><span id="kickTroopProgressFail5" class="kick-troop-progress-fail"></span></div>
+        <div class="kick-troop-progress" id="kickTroopProgress6" data-kick-troop="7"><div class="kick-troop-progress-head"><span>T7</span><span id="kickTroopProgressText6">0/0</span></div><div class="kick-troop-progress-track"><div id="kickTroopProgressBar6" class="kick-troop-progress-bar"></div></div><span id="kickTroopProgressFail6" class="kick-troop-progress-fail"></span></div>
+        <div class="kick-troop-progress" id="kickTroopProgress7" data-kick-troop="8"><div class="kick-troop-progress-head"><span>T8</span><span id="kickTroopProgressText7">0/0</span></div><div class="kick-troop-progress-track"><div id="kickTroopProgressBar7" class="kick-troop-progress-bar"></div></div><span id="kickTroopProgressFail7" class="kick-troop-progress-fail"></span></div>
+        <div class="kick-troop-progress" id="kickTroopProgress8" data-kick-troop="9"><div class="kick-troop-progress-head"><span>T9</span><span id="kickTroopProgressText8">0/0</span></div><div class="kick-troop-progress-track"><div id="kickTroopProgressBar8" class="kick-troop-progress-bar"></div></div><span id="kickTroopProgressFail8" class="kick-troop-progress-fail"></span></div>
+        <div class="kick-troop-progress" id="kickTroopProgress9" data-kick-troop="10"><div class="kick-troop-progress-head"><span>T10</span><span id="kickTroopProgressText9">0/0</span></div><div class="kick-troop-progress-track"><div id="kickTroopProgressBar9" class="kick-troop-progress-bar"></div></div><span id="kickTroopProgressFail9" class="kick-troop-progress-fail"></span></div>
+      </div>
+      <div id="kickProgressMeta" class="text-[10px] text-slate-500">Menunggu perintah kick...</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/frontend.js?v=60"></script>
+</body>
+</html>
+<style id="mobile-logo-v24">
+  /* v24: supplied migsock TEAM logo, sized for portrait/mobile without distortion */
+  #pageHeader{min-height:108px!important}
+  #pageHeader > div.relative{min-height:108px!important}
+  #pageHeader img{width:auto!important;max-width:min(82vw,300px)!important;height:126px!important;object-fit:contain!important;object-position:center!important}
+  @media(max-width:640px){
+    #pageHeader{min-height:96px!important;border-radius:18px!important}
+    #pageHeader > div.relative{min-height:96px!important}
+    #pageHeader img{max-width:78vw!important;height:108px!important}
+  }
+  @media(max-width:380px){
+    #pageHeader{min-height:90px!important}
+    #pageHeader > div.relative{min-height:90px!important}
+    #pageHeader img{max-width:76vw!important;height:100px!important}
+  }
+</style>
