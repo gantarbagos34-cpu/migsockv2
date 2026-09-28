@@ -375,7 +375,7 @@ async def kick_loop(req):
     # Limit KICK per WebSocket (server-authoritative):
     # WS1 = 100 kick / 900 ms, WS2 = 100 / 910 ms, ... WS10 = 100 / 990 ms.
     # Limit tidak diambil dari client agar tidak dapat diubah/bypass dari frontend.
-    KICK_MAX_PER_WINDOW = 100
+    KICK_MAX_PER_WINDOW = 150
     KICK_BASE_WINDOW_MS = 900
     KICK_WINDOW_STEP_MS = 10
     socket_limits = {}
@@ -426,7 +426,7 @@ async def kick_loop(req):
                         await send(sid,{'type':'room.kick','room':room,'target_username':target}); counters['dispatched']+=1; sent_in_window+=1; state['targetProgress'][pos+j]['dispatched']+=1; state['targetProgress'][pos+j]['completed']=min(state['targetProgress'][pos+j]['total'],state['targetProgress'][pos+j]['dispatched']//len(ws_entries)); ws_progress_by_slot[slot]['dispatched']+=1
                     except Exception: counters['failed']+=1; ws_progress_by_slot[slot]['failed']+=1
                     await publish({'phase':'dispatched','loop':r+1,'targetIndex':pos+j+1,'target':target,'websocket':slot,'sessionId':sid,'dispatchedJobs':counters['dispatched'],'failedJobs':counters['failed']})
-                    if target_delay and j<len(group)-1: await asyncio.sleep(target_delay/1000)
+                    if target_delay and (j+1)%2==0 and j<len(group)-1: await asyncio.sleep(target_delay/1000)
                 if batch_delay and pos+burst<len(targets): await asyncio.sleep(batch_delay/1000)
     async def runner():
         c={'dispatched':0,'failed':0}
